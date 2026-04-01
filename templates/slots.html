@@ -1,0 +1,99 @@
+{% extends "base.html" %}
+{% block title %}Parking Slots — SmartPark{% endblock %}
+{% block content %}
+<div class="page-container">
+  <div class="page-header">
+    <div>
+      <h1><i class="fas fa-map-marked-alt"></i> Parking Slots</h1>
+      <p class="page-sub">Real-time availability across all zones</p>
+    </div>
+    <a href="{{ url_for('book_slot') }}" class="btn-primary"><i class="fas fa-plus"></i> Book a Slot</a>
+  </div>
+
+  <!-- Legend -->
+  <div class="legend-bar">
+    <div class="legend-item"><span class="dot available"></span>Available</div>
+    <div class="legend-item"><span class="dot occupied"></span>Occupied</div>
+    <div class="legend-item"><span class="dot reserved"></span>Reserved</div>
+    <div class="legend-item"><span class="dot maintenance"></span>Maintenance</div>
+  </div>
+
+  <!-- Filters -->
+  <form method="GET" class="filter-bar">
+    <div class="filter-group">
+      <select name="area" class="filter-select">
+        <option value="">All Zones</option>
+        {% for a in areas %}
+        <option value="{{ a.area }}" {% if filters.area==a.area %}selected{% endif %}>{{ a.area }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="filter-group">
+      <select name="slot_type" class="filter-select">
+        <option value="">All Types</option>
+        <option value="car"  {% if filters.slot_type=='car'  %}selected{% endif %}>🚗 Car</option>
+        <option value="bike" {% if filters.slot_type=='bike' %}selected{% endif %}>🏍 Bike</option>
+        <option value="ev"   {% if filters.slot_type=='ev'   %}selected{% endif %}>⚡ EV</option>
+      </select>
+    </div>
+    <div class="filter-group">
+      <select name="status" class="filter-select">
+        <option value="">All Status</option>
+        <option value="available"   {% if filters.status=='available'   %}selected{% endif %}>Available</option>
+        <option value="occupied"    {% if filters.status=='occupied'    %}selected{% endif %}>Occupied</option>
+        <option value="reserved"    {% if filters.status=='reserved'    %}selected{% endif %}>Reserved</option>
+        <option value="maintenance" {% if filters.status=='maintenance' %}selected{% endif %}>Maintenance</option>
+      </select>
+    </div>
+    <button type="submit" class="btn-filter"><i class="fas fa-filter"></i> Filter</button>
+    <a href="{{ url_for('slots') }}" class="btn-reset"><i class="fas fa-times"></i> Reset</a>
+  </form>
+
+  <!-- Slots Grid -->
+  <div class="slots-grid">
+    {% if slots %}
+      {% for s in slots %}
+      <div class="slot-card {{ s.status }}">
+        <div class="slot-header">
+          <div class="slot-number">{{ s.slot_number }}</div>
+          <span class="slot-status-badge {{ s.status }}">
+            {% if s.status=='available' %}<i class="fas fa-check"></i>
+            {% elif s.status=='occupied' %}<i class="fas fa-car"></i>
+            {% elif s.status=='reserved' %}<i class="fas fa-clock"></i>
+            {% else %}<i class="fas fa-tools"></i>{% endif %}
+            {{ s.status|title }}
+          </span>
+        </div>
+        <div class="slot-details">
+          <div class="slot-det-row">
+            <i class="fas fa-map-marker-alt"></i> {{ s.area }}
+          </div>
+          <div class="slot-det-row">
+            <i class="fas fa-layer-group"></i> {{ s.floor }}
+          </div>
+          <div class="slot-det-row">
+            {% if s.slot_type=='car' %}<i class="fas fa-car"></i> Car
+            {% elif s.slot_type=='bike' %}<i class="fas fa-motorcycle"></i> Bike
+            {% else %}<i class="fas fa-bolt"></i> EV Charging{% endif %}
+          </div>
+          <div class="slot-det-row price">
+            <i class="fas fa-rupee-sign"></i> {{ s.hourly_rate }}/hr
+          </div>
+        </div>
+        {% if s.status == 'available' and session.user_id %}
+        <a href="{{ url_for('book_slot', slot_id=s.id) }}" class="slot-book-btn">
+          Book This Slot <i class="fas fa-arrow-right"></i>
+        </a>
+        {% elif not session.user_id %}
+        <a href="{{ url_for('login') }}" class="slot-book-btn ghost">Login to Book</a>
+        {% else %}
+        <div class="slot-unavail">Not Available</div>
+        {% endif %}
+      </div>
+      {% endfor %}
+    {% else %}
+      <div class="empty-full"><i class="fas fa-search"></i><p>No slots match your filters.</p></div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

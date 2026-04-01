@@ -1,0 +1,92 @@
+{% extends "admin_base.html" %}
+{% block admin_title %}Manage Bookings{% endblock %}
+{% block admin_content %}
+<div class="admin-panel">
+  <div class="ap-header">
+    <h3><i class="fas fa-calendar-alt"></i> All Bookings</h3>
+  </div>
+
+  <!-- Search & Filters -->
+  <form method="GET" class="filter-bar" style="margin-bottom:1.5rem">
+    <div class="filter-group" style="flex:1">
+      <div class="input-wrap"><i class="fas fa-search"></i>
+        <input type="text" name="q" value="{{ search }}" placeholder="Search by ref, name, vehicle…" class="filter-input">
+      </div>
+    </div>
+    <div class="filter-group">
+      <select name="status" class="filter-select">
+        <option value="">All Status</option>
+        <option value="active"    {% if status_f=='active'    %}selected{% endif %}>Active</option>
+        <option value="completed" {% if status_f=='completed' %}selected{% endif %}>Completed</option>
+        <option value="cancelled" {% if status_f=='cancelled' %}selected{% endif %}>Cancelled</option>
+      </select>
+    </div>
+    <div class="filter-group">
+      <input type="date" name="date" value="{{ date_f }}" class="filter-select">
+    </div>
+    <button type="submit" class="btn-filter"><i class="fas fa-filter"></i> Filter</button>
+    <a href="{{ url_for('manage_bookings') }}" class="btn-reset"><i class="fas fa-times"></i> Clear</a>
+  </form>
+
+  <div class="bookings-table-wrap">
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>Ref #</th>
+          <th>User</th>
+          <th>Slot</th>
+          <th>Vehicle</th>
+          <th>Date</th>
+          <th>Time</th>
+          <th>Cost</th>
+          <th>Status</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for b in bookings %}
+        <tr>
+          <td><span class="ref-code">{{ b.booking_ref }}</span></td>
+          <td>
+            <div class="table-user">
+              <span class="tu-name">{{ b.full_name }}</span>
+              <span class="tu-email">{{ b.email }}</span>
+            </div>
+          </td>
+          <td>
+            <span class="slot-badge-sm car">{{ b.slot_number }}</span>
+            <span class="slot-area-sm">{{ b.area }}</span>
+          </td>
+          <td>{{ b.vehicle_no }}</td>
+          <td>{{ b.booking_date }}</td>
+          <td><span class="time-range">{{ b.start_time }} – {{ b.end_time }}</span></td>
+          <td><strong>₹{{ b.total_cost }}</strong></td>
+          <td><span class="status-badge {{ b.status }}">{{ b.status|title }}</span></td>
+          <td>
+            <div class="table-actions">
+              {% if b.status == 'active' %}
+              <form method="POST" style="display:inline" onsubmit="return confirm('Mark as completed?')">
+                <input type="hidden" name="booking_id" value="{{ b.id }}">
+                <input type="hidden" name="action" value="complete">
+                <button class="ta-btn view" title="Complete"><i class="fas fa-check"></i></button>
+              </form>
+              <form method="POST" style="display:inline" onsubmit="return confirm('Cancel this booking?')">
+                <input type="hidden" name="booking_id" value="{{ b.id }}">
+                <input type="hidden" name="action" value="cancel">
+                <button class="ta-btn cancel" title="Cancel"><i class="fas fa-times"></i></button>
+              </form>
+              {% else %}
+              <span class="ta-na">—</span>
+              {% endif %}
+            </div>
+          </td>
+        </tr>
+        {% endfor %}
+        {% if not bookings %}
+        <tr><td colspan="9" class="text-center" style="padding:2rem;color:#64748b;">No bookings found.</td></tr>
+        {% endif %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

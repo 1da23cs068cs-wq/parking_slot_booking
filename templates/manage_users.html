@@ -1,0 +1,75 @@
+{% extends "admin_base.html" %}
+{% block admin_title %}Manage Users{% endblock %}
+{% block admin_content %}
+<div class="admin-panel">
+  <div class="ap-header">
+    <h3><i class="fas fa-users"></i> Registered Users</h3>
+  </div>
+
+  <!-- Search -->
+  <form method="GET" class="filter-bar" style="margin-bottom:1.5rem">
+    <div class="filter-group" style="flex:1">
+      <div class="input-wrap"><i class="fas fa-search"></i>
+        <input type="text" name="q" value="{{ search }}" placeholder="Search by name or email…" class="filter-input">
+      </div>
+    </div>
+    <button type="submit" class="btn-filter"><i class="fas fa-search"></i> Search</button>
+    <a href="{{ url_for('manage_users') }}" class="btn-reset"><i class="fas fa-times"></i> Clear</a>
+  </form>
+
+  <div class="bookings-table-wrap">
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>User</th>
+          <th>Phone</th>
+          <th>Vehicle</th>
+          <th>Bookings</th>
+          <th>Joined</th>
+          <th>Status</th>
+          <th>Action</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for u in users %}
+        <tr>
+          <td>{{ loop.index }}</td>
+          <td>
+            <div class="table-user">
+              <div class="tu-avatar">{{ u.full_name[:1].upper() }}</div>
+              <div>
+                <span class="tu-name">{{ u.full_name }}</span>
+                <span class="tu-email">{{ u.email }}</span>
+              </div>
+            </div>
+          </td>
+          <td>{{ u.phone or '—' }}</td>
+          <td>{{ u.vehicle_no or '—' }}</td>
+          <td><span class="badge-num">{{ u.total_bookings }}</span></td>
+          <td>{{ u.created_at.strftime('%d %b %Y') if u.created_at else '—' }}</td>
+          <td>
+            {% if u.is_active %}
+            <span class="status-badge available">Active</span>
+            {% else %}
+            <span class="status-badge occupied">Inactive</span>
+            {% endif %}
+          </td>
+          <td>
+            <form method="POST" action="{{ url_for('toggle_user', uid=u.id) }}"
+                  onsubmit="return confirm('Toggle user status?')" style="display:inline">
+              <button class="ta-btn {% if u.is_active %}cancel{% else %}view{% endif %}" title="Toggle Status">
+                <i class="fas {% if u.is_active %}fa-ban{% else %}fa-check{% endif %}"></i>
+              </button>
+            </form>
+          </td>
+        </tr>
+        {% endfor %}
+        {% if not users %}
+        <tr><td colspan="8" class="text-center" style="padding:2rem;color:#64748b;">No users found.</td></tr>
+        {% endif %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

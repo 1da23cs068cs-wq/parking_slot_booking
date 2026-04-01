@@ -1,0 +1,91 @@
+{% extends "base.html" %}
+{% block title %}Register — SmartPark{% endblock %}
+{% block body_class %}auth-page{% endblock %}
+{% block content %}
+<div class="auth-wrapper">
+  <div class="auth-left">
+    <div class="auth-left-content">
+      <div class="auth-brand"><i class="fas fa-parking"></i> SmartPark</div>
+      <h2>Join the Smart Parking Revolution</h2>
+      <p>Cloud-powered parking at your fingertips. Register once, park anywhere.</p>
+      <div class="auth-perks">
+        <div class="perk"><i class="fas fa-check"></i> Free to register</div>
+        <div class="perk"><i class="fas fa-check"></i> Real-time slot visibility</div>
+        <div class="perk"><i class="fas fa-check"></i> QR booking confirmation</div>
+        <div class="perk"><i class="fas fa-check"></i> Full booking history</div>
+      </div>
+    </div>
+  </div>
+  <div class="auth-right">
+    <div class="auth-card">
+      <h2 class="auth-title">Create Account</h2>
+      <p class="auth-sub">Already have an account? <a href="{{ url_for('login') }}">Sign in</a></p>
+      <form method="POST" action="{{ url_for('register') }}" class="auth-form" id="regForm">
+        <div class="form-row">
+          <div class="form-group">
+            <label>Full Name *</label>
+            <div class="input-wrap"><i class="fas fa-user"></i>
+              <input type="text" name="full_name" placeholder="Arjun Sharma" required>
+            </div>
+          </div>
+          <div class="form-group">
+            <label>Phone</label>
+            <div class="input-wrap"><i class="fas fa-phone"></i>
+              <input type="tel" name="phone" placeholder="+91 98765 43210">
+            </div>
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Email Address *</label>
+          <div class="input-wrap"><i class="fas fa-envelope"></i>
+            <input type="email" name="email" placeholder="you@example.com" required>
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Vehicle Number</label>
+          <div class="input-wrap"><i class="fas fa-car"></i>
+            <input type="text" name="vehicle_no" placeholder="KA01AB1234" style="text-transform:uppercase">
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Password *</label>
+            <div class="input-wrap"><i class="fas fa-lock"></i>
+              <input type="password" name="password" id="pwd" placeholder="Min. 6 characters" required>
+              <button type="button" class="eye-btn" onclick="togglePwd('pwd','eye1')"><i class="fas fa-eye" id="eye1"></i></button>
+            </div>
+          </div>
+          <div class="form-group">
+            <label>Confirm Password *</label>
+            <div class="input-wrap"><i class="fas fa-lock"></i>
+              <input type="password" name="confirm_password" id="pwd2" placeholder="Repeat password" required>
+              <button type="button" class="eye-btn" onclick="togglePwd('pwd2','eye2')"><i class="fas fa-eye" id="eye2"></i></button>
+            </div>
+          </div>
+        </div>
+        <div class="strength-bar" id="strengthBar"><div class="strength-fill" id="strengthFill"></div></div>
+        <p class="strength-label" id="strengthLabel"></p>
+        <button type="submit" class="btn-auth">Create Account <i class="fas fa-arrow-right"></i></button>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}
+{% block extra_js %}
+<script>
+document.getElementById('pwd').addEventListener('input', function() {
+  const v = this.value, bar = document.getElementById('strengthFill'), label = document.getElementById('strengthLabel');
+  let score = 0;
+  if(v.length >= 6) score++;
+  if(v.length >= 10) score++;
+  if(/[A-Z]/.test(v)) score++;
+  if(/[0-9]/.test(v)) score++;
+  if(/[^A-Za-z0-9]/.test(v)) score++;
+  const levels = ['','weak','fair','good','strong','very-strong'];
+  const labels = ['','Weak','Fair','Good','Strong','Very Strong'];
+  bar.className = 'strength-fill ' + (levels[score]||'');
+  bar.style.width = (score * 20) + '%';
+  label.textContent = labels[score] || '';
+});
+</script>
+{% endblock %}

@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}SmartPark — Cloud Parking System{% endblock %}</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+  {% block extra_css %}{% endblock %}
+</head>
+<body class="{% block body_class %}{% endblock %}">
+
+<!-- NAVBAR -->
+<nav class="navbar" id="navbar">
+  <div class="nav-container">
+    <a href="{{ url_for('index') }}" class="nav-brand">
+      <div class="brand-icon"><i class="fas fa-parking"></i></div>
+      <span class="brand-text">Smart<strong>Park</strong></span>
+    </a>
+    <div class="nav-links" id="navLinks">
+      <a href="{{ url_for('index') }}" class="nav-link {% if request.endpoint=='index' %}active{% endif %}">Home</a>
+      {% if session.user_id %}
+        <a href="{{ url_for('slots') }}" class="nav-link {% if request.endpoint=='slots' %}active{% endif %}">Slots</a>
+        <a href="{{ url_for('book_slot') }}" class="nav-link {% if request.endpoint=='book_slot' %}active{% endif %}">Book</a>
+        <a href="{{ url_for('booking_history') }}" class="nav-link {% if request.endpoint=='booking_history' %}active{% endif %}">History</a>
+        <div class="nav-user">
+          <div class="user-avatar"><i class="fas fa-user"></i></div>
+          <div class="user-dropdown">
+            <div class="user-info">
+              <span class="u-name">{{ session.user_name }}</span>
+              <span class="u-email">{{ session.user_email }}</span>
+            </div>
+            <a href="{{ url_for('profile') }}"><i class="fas fa-id-card"></i> Profile</a>
+            <a href="{{ url_for('logout') }}" class="logout-link"><i class="fas fa-sign-out-alt"></i> Logout</a>
+          </div>
+        </div>
+      {% else %}
+        <a href="{{ url_for('login') }}" class="nav-link">Login</a>
+        <a href="{{ url_for('register') }}" class="btn-nav">Register</a>
+      {% endif %}
+    </div>
+    <button class="nav-toggle" id="navToggle"><i class="fas fa-bars"></i></button>
+  </div>
+</nav>
+
+<!-- FLASH MESSAGES -->
+{% with messages = get_flashed_messages(with_categories=true) %}
+  {% if messages %}
+  <div class="flash-container">
+    {% for cat, msg in messages %}
+    <div class="flash flash-{{ cat }}">
+      <i class="fas {% if cat=='success' %}fa-check-circle{% elif cat=='danger' %}fa-exclamation-circle{% elif cat=='warning' %}fa-exclamation-triangle{% else %}fa-info-circle{% endif %}"></i>
+      {{ msg }}
+      <button class="flash-close" onclick="this.parentElement.remove()">×</button>
+    </div>
+    {% endfor %}
+  </div>
+  {% endif %}
+{% endwith %}
+
+{% block content %}{% endblock %}
+
+<!-- FOOTER -->
+<footer class="footer">
+  <div class="footer-container">
+    <div class="footer-brand">
+      <div class="brand-icon"><i class="fas fa-parking"></i></div>
+      <span>Smart<strong>Park</strong></span>
+      <p>Cloud-based smart parking for the modern city. IoT-ready infrastructure.</p>
+    </div>
+    <div class="footer-links">
+      <h4>Quick Links</h4>
+      <a href="{{ url_for('index') }}">Home</a>
+      <a href="{{ url_for('slots') }}">View Slots</a>
+      <a href="{{ url_for('login') }}">Login</a>
+    </div>
+    <div class="footer-links">
+      <h4>Technology</h4>
+      <a href="#">Python Flask</a>
+      <a href="#">AWS RDS</a>
+      <a href="#">AWS EC2</a>
+      <a href="#">MySQL</a>
+    </div>
+    <div class="footer-contact">
+      <h4>Contact</h4>
+      <p><i class="fas fa-envelope"></i> info@smartpark.cloud</p>
+      <p><i class="fas fa-phone"></i> +91 98765 43210</p>
+      <p><i class="fas fa-map-marker-alt"></i> Smart City, India</p>
+    </div>
+  </div>
+  <div class="footer-bottom">
+    <p>© 2024 SmartPark · Cloud-Based Parking System · Built on AWS</p>
+  </div>
+</footer>
+
+<script src="{{ url_for('static', filename='js/script.js') }}"></script>
+{% block extra_js %}{% endblock %}
+</body>
+</html>

@@ -1,0 +1,167 @@
+{% extends "base.html" %}
+{% block title %}SmartPark — Cloud-Based Parking System{% endblock %}
+{% block body_class %}home-page{% endblock %}
+
+{% block content %}
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-bg">
+    <div class="hero-grid"></div>
+    <div class="hero-glow"></div>
+  </div>
+  <div class="hero-content">
+    <div class="hero-badge"><i class="fas fa-cloud"></i> AWS Cloud Powered · IoT Ready</div>
+    <h1 class="hero-title">
+      Smart Parking<br>
+      <span class="gradient-text">Reimagined</span>
+    </h1>
+    <p class="hero-desc">
+      Reserve your parking slot in seconds. Real-time availability, QR-coded bookings,
+      and seamless cloud infrastructure — built for the smart city of tomorrow.
+    </p>
+    <div class="hero-actions">
+      <a href="{{ url_for('slots') }}" class="btn-primary-lg">
+        <i class="fas fa-search"></i> Check Availability
+      </a>
+      {% if not session.user_id %}
+      <a href="{{ url_for('register') }}" class="btn-ghost-lg">
+        Create Account <i class="fas fa-arrow-right"></i>
+      </a>
+      {% else %}
+      <a href="{{ url_for('book_slot') }}" class="btn-ghost-lg">
+        Book Now <i class="fas fa-arrow-right"></i>
+      </a>
+      {% endif %}
+    </div>
+    <!-- Live Stats Bar -->
+    <div class="hero-stats">
+      <div class="hstat">
+        <span class="hstat-num">{{ stats.total }}</span>
+        <span class="hstat-label">Total Slots</span>
+      </div>
+      <div class="hstat-divider"></div>
+      <div class="hstat">
+        <span class="hstat-num available">{{ stats.available }}</span>
+        <span class="hstat-label">Available</span>
+      </div>
+      <div class="hstat-divider"></div>
+      <div class="hstat">
+        <span class="hstat-num occupied">{{ stats.occupied }}</span>
+        <span class="hstat-label">Occupied</span>
+      </div>
+      <div class="hstat-divider"></div>
+      <div class="hstat">
+        <span class="hstat-num reserved">{{ stats.reserved }}</span>
+        <span class="hstat-label">Reserved</span>
+      </div>
+    </div>
+  </div>
+  <!-- Animated parking visual -->
+  <div class="hero-visual">
+    <div class="parking-grid-visual">
+      {% for i in range(12) %}
+      <div class="pv-slot {% if i in [2,7,9] %}occ{% elif i in [4,11] %}res{% else %}avail{% endif %}">
+        {% if i in [2,7,9] %}<i class="fas fa-car"></i>{% elif i in [4,11] %}<i class="fas fa-clock"></i>{% else %}<i class="fas fa-check"></i>{% endif %}
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+
+<!-- FEATURES -->
+<section class="features-section">
+  <div class="container">
+    <div class="section-header">
+      <div class="section-tag">Why SmartPark?</div>
+      <h2>Everything You Need<br>in One Platform</h2>
+    </div>
+    <div class="features-grid">
+      <div class="feature-card">
+        <div class="fc-icon fc-blue"><i class="fas fa-clock"></i></div>
+        <h3>Real-Time Availability</h3>
+        <p>See live slot status — available, occupied, or reserved — updated in real time across all zones.</p>
+      </div>
+      <div class="feature-card">
+        <div class="fc-icon fc-green"><i class="fas fa-calendar-check"></i></div>
+        <h3>Time-Based Booking</h3>
+        <p>Reserve your slot for an exact time window. Our system prevents double-bookings automatically.</p>
+      </div>
+      <div class="feature-card">
+        <div class="fc-icon fc-orange"><i class="fas fa-qrcode"></i></div>
+        <h3>QR Code Entry</h3>
+        <p>Get a unique QR code for every booking. Scan to enter — no paper tickets needed.</p>
+      </div>
+      <div class="feature-card">
+        <div class="fc-icon fc-purple"><i class="fas fa-cloud"></i></div>
+        <h3>Cloud Hosted on AWS</h3>
+        <p>Powered by AWS EC2 and RDS for 99.9% uptime. Scale seamlessly with traffic.</p>
+      </div>
+      <div class="feature-card">
+        <div class="fc-icon fc-teal"><i class="fas fa-rupee-sign"></i></div>
+        <h3>Auto Cost Calculation</h3>
+        <p>Booking cost is calculated automatically based on duration and slot type. Transparent pricing.</p>
+      </div>
+      <div class="feature-card">
+        <div class="fc-icon fc-red"><i class="fas fa-shield-alt"></i></div>
+        <h3>Secure & Reliable</h3>
+        <p>Session-based authentication, hashed passwords, and audit logs for every action.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- HOW IT WORKS -->
+<section class="how-section">
+  <div class="container">
+    <div class="section-header">
+      <div class="section-tag">Simple Process</div>
+      <h2>How It Works</h2>
+    </div>
+    <div class="steps-row">
+      <div class="how-step">
+        <div class="step-num">01</div>
+        <div class="step-icon"><i class="fas fa-user-plus"></i></div>
+        <h3>Register</h3>
+        <p>Create your account with vehicle details in under a minute.</p>
+      </div>
+      <div class="step-arrow"><i class="fas fa-chevron-right"></i></div>
+      <div class="how-step">
+        <div class="step-num">02</div>
+        <div class="step-icon"><i class="fas fa-search-location"></i></div>
+        <h3>Find a Slot</h3>
+        <p>Browse available slots filtered by zone, type, and time.</p>
+      </div>
+      <div class="step-arrow"><i class="fas fa-chevron-right"></i></div>
+      <div class="how-step">
+        <div class="step-num">03</div>
+        <div class="step-icon"><i class="fas fa-calendar-plus"></i></div>
+        <h3>Book & Pay</h3>
+        <p>Select your time window and confirm. Instant cost calculation.</p>
+      </div>
+      <div class="step-arrow"><i class="fas fa-chevron-right"></i></div>
+      <div class="how-step">
+        <div class="step-num">04</div>
+        <div class="step-icon"><i class="fas fa-parking"></i></div>
+        <h3>Park & Go</h3>
+        <p>Show your QR code booking reference at the entrance.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CTA -->
+<section class="cta-section">
+  <div class="cta-inner">
+    <h2>Ready to park smarter?</h2>
+    <p>Join thousands of drivers using SmartPark across the city.</p>
+    {% if not session.user_id %}
+    <div class="cta-btns">
+      <a href="{{ url_for('register') }}" class="btn-primary-lg">Get Started Free</a>
+      <a href="{{ url_for('login') }}" class="btn-ghost-lg">Sign In</a>
+    </div>
+    {% else %}
+    <a href="{{ url_for('book_slot') }}" class="btn-primary-lg">Book a Slot Now</a>
+    {% endif %}
+  </div>
+</section>
+{% endblock %}

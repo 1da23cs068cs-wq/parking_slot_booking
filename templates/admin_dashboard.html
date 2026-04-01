@@ -1,0 +1,159 @@
+{% extends "admin_base.html" %}
+{% block title %}Admin Dashboard — SmartPark{% endblock %}
+{% block admin_title %}Dashboard{% endblock %}
+
+{% block admin_content %}
+<!-- STATS CARDS -->
+<div class="admin-stats-grid">
+  <div class="as-card as-blue">
+    <div class="as-icon"><i class="fas fa-parking"></i></div>
+    <div class="as-data">
+      <span class="as-num">{{ (slots.get('available',0) + slots.get('occupied',0) + slots.get('reserved',0) + slots.get('maintenance',0)) }}</span>
+      <span class="as-label">Total Slots</span>
+    </div>
+  </div>
+  <div class="as-card as-green">
+    <div class="as-icon"><i class="fas fa-check-circle"></i></div>
+    <div class="as-data">
+      <span class="as-num">{{ slots.get('available', 0) }}</span>
+      <span class="as-label">Available</span>
+    </div>
+  </div>
+  <div class="as-card as-red">
+    <div class="as-icon"><i class="fas fa-car"></i></div>
+    <div class="as-data">
+      <span class="as-num">{{ slots.get('occupied', 0) }}</span>
+      <span class="as-label">Occupied</span>
+    </div>
+  </div>
+  <div class="as-card as-yellow">
+    <div class="as-icon"><i class="fas fa-clock"></i></div>
+    <div class="as-data">
+      <span class="as-num">{{ slots.get('reserved', 0) }}</span>
+      <span class="as-label">Reserved</span>
+    </div>
+  </div>
+  <div class="as-card as-purple">
+    <div class="as-icon"><i class="fas fa-calendar-check"></i></div>
+    <div class="as-data">
+      <span class="as-num">{{ bookings.get('active', 0) }}</span>
+      <span class="as-label">Active Bookings</span>
+    </div>
+  </div>
+  <div class="as-card as-teal">
+    <div class="as-icon"><i class="fas fa-users"></i></div>
+    <div class="as-data">
+      <span class="as-num">{{ total_users }}</span>
+      <span class="as-label">Registered Users</span>
+    </div>
+  </div>
+  <div class="as-card as-orange">
+    <div class="as-icon"><i class="fas fa-rupee-sign"></i></div>
+    <div class="as-data">
+      <span class="as-num">Rs.{{ total_revenue }}</span>
+      <span class="as-label">Total Revenue</span>
+    </div>
+  </div>
+  <div class="as-card as-dark">
+    <div class="as-icon"><i class="fas fa-flag-checkered"></i></div>
+    <div class="as-data">
+      <span class="as-num">{{ bookings.get('completed', 0) }}</span>
+      <span class="as-label">Completed</span>
+    </div>
+  </div>
+</div>
+
+<!-- Charts + Zone Table -->
+<div class="admin-mid-grid">
+  <div class="admin-panel">
+    <div class="ap-header"><h3>Slot Status Overview</h3></div>
+    <canvas id="slotChart" height="200"></canvas>
+  </div>
+  <div class="admin-panel">
+    <div class="ap-header"><h3>Zone-wise Occupancy</h3></div>
+    <table class="data-table">
+      <thead>
+        <tr><th>Zone</th><th>Total</th><th>Available</th><th>Occupied</th><th>Reserved</th><th>%</th></tr>
+      </thead>
+      <tbody>
+        {% for z in zones %}
+        <tr>
+          <td><strong>{{ z.area }}</strong></td>
+          <td>{{ z.total }}</td>
+          <td><span class="status-badge available">{{ z.avail }}</span></td>
+          <td><span class="status-badge occupied">{{ z.occ }}</span></td>
+          <td><span class="status-badge reserved">{{ z.res }}</span></td>
+          <td>
+            <div class="occ-bar">
+              <div class="occ-fill" style="width:{{ ((z.occ + z.res) / z.total * 100)|int if z.total else 0 }}%"></div>
+            </div>
+            {{ ((z.occ + z.res) / z.total * 100)|int if z.total else 0 }}%
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- Recent Bookings -->
+<div class="admin-panel">
+  <div class="ap-header">
+    <h3>Recent Bookings</h3>
+    <a href="{{ url_for('manage_bookings') }}" class="panel-link">View All</a>
+  </div>
+  <table class="data-table">
+    <thead>
+      <tr><th>Ref</th><th>User</th><th>Slot</th><th>Date</th><th>Cost</th><th>Status</th><th>Action</th></tr>
+    </thead>
+    <tbody>
+      {% for b in recent_bookings %}
+      <tr>
+        <td><span class="ref-code">{{ b.booking_ref }}</span></td>
+        <td>{{ b.full_name }}</td>
+        <td><span class="slot-badge-sm car">{{ b.slot_number }}</span></td>
+        <td>{{ b.booking_date }}</td>
+        <td>Rs.{{ b.total_cost }}</td>
+        <td><span class="status-badge {{ b.status }}">{{ b.status|title }}</span></td>
+        <td>
+          {% if b.status == 'active' %}
+          <form method="POST" action="{{ url_for('manage_bookings') }}" style="display:inline">
+            <input type="hidden" name="booking_id" value="{{ b.id }}">
+            <input type="hidden" name="action" value="complete">
+            <button class="ta-btn view" title="Mark Complete"><i class="fas fa-check"></i></button>
+          </form>
+          {% else %}—{% endif %}
+        </td>
+      </tr>
+      {% endfor %}
+      {% if not recent_bookings %}
+      <tr><td colspan="7" style="text-align:center;padding:2rem;color:#64748b;">No bookings yet.</td></tr>
+      {% endif %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+const ctx = document.getElementById('slotChart');
+if (ctx) {
+  new Chart(ctx, {
+    type: 'doughnut',
+    data: {
+      labels: ['Available','Occupied','Reserved','Maintenance'],
+      datasets: [{
+        data: [{{ slots.get('available',0) }},{{ slots.get('occupied',0) }},{{ slots.get('reserved',0) }},{{ slots.get('maintenance',0) }}],
+        backgroundColor: ['#22c55e','#ef4444','#f59e0b','#6b7280'],
+        borderWidth: 0, hoverOffset: 8
+      }]
+    },
+    options: {
+      responsive: true,
+      plugins: { legend: { position: 'bottom', labels: { color: '#94a3b8', padding: 16 } } },
+      cutout: '65%'
+    }
+  });
+}
+</script>
+{% endblock %}

@@ -1,0 +1,192 @@
+{% extends "base.html" %}
+{% block title %}Book a Slot — SmartPark{% endblock %}
+{% block content %}
+<div class="page-container">
+  <div class="page-header">
+    <div>
+      <h1><i class="fas fa-calendar-plus"></i> Book a Parking Slot</h1>
+      <p class="page-sub">Select your slot, date and time to reserve</p>
+    </div>
+  </div>
+
+  <div class="book-layout">
+    <!-- Booking Form -->
+    <div class="book-form-panel">
+      <form method="POST" id="bookingForm" class="booking-form">
+        <!-- Slot Selection -->
+        <div class="form-section">
+          <h3 class="fs-title"><span class="fs-num">1</span> Select Parking Slot</h3>
+          <div class="form-group">
+            <label>Choose Slot *</label>
+            <select name="slot_id" id="slotSelect" required class="form-select">
+              <option value="">-- Select a slot --</option>
+              {% set current_area = '' %}
+              {% for s in slots %}
+                {% if s.area != current_area %}
+                  {% if current_area != '' %}</optgroup>{% endif %}
+                  <optgroup label="── {{ s.area }} ──">
+                  {% set current_area = s.area %}
+                {% endif %}
+                <option value="{{ s.id }}"
+                  data-rate="{{ s.hourly_rate }}"
+                  data-type="{{ s.slot_type }}"
+                  data-area="{{ s.area }}"
+                  {% if selected_slot and selected_slot.id == s.id %}selected{% endif %}>
+                  {{ s.slot_number }} — {{ s.slot_type|title }} · ₹{{ s.hourly_rate }}/hr
+                  {% if s.status == 'reserved' %} (May overlap){% endif %}
+                </option>
+              {% endfor %}
+            </select>
+          </div>
+          <!-- Selected slot info -->
+          <div id="slotInfo" class="slot-info-box" style="display:none">
+            <div class="sib-row"><i class="fas fa-map-marker-alt"></i> <span id="sib-area"></span></div>
+            <div class="sib-row"><i class="fas fa-car"></i> <span id="sib-type"></span></div>
+            <div class="sib-row"><i class="fas fa-rupee-sign"></i> <span id="sib-rate"></span>/hr</div>
+          </div>
+        </div>
+
+        <!-- Vehicle Details -->
+        <div class="form-section">
+          <h3 class="fs-title"><span class="fs-num">2</span> Vehicle Details</h3>
+          <div class="form-group">
+            <label>Vehicle Number *</label>
+            <div class="input-wrap"><i class="fas fa-car"></i>
+              <input type="text" name="vehicle_no" id="vehicleNo"
+                     value="{{ user.vehicle_no or '' }}"
+                     placeholder="KA01AB1234" required style="text-transform:uppercase">
+            </div>
+          </div>
+        </div>
+
+        <!-- Date & Time -->
+        <div class="form-section">
+          <h3 class="fs-title"><span class="fs-num">3</span> Date & Time</h3>
+          <div class="form-group">
+            <label>Booking Date *</label>
+            <div class="input-wrap"><i class="fas fa-calendar"></i>
+              <input type="date" name="booking_date" id="bookingDate"
+                     min="{{ today }}" required>
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label>Start Time *</label>
+              <div class="input-wrap"><i class="fas fa-clock"></i>
+                <input type="time" name="start_time" id="startTime" required>
+              </div>
+            </div>
+            <div class="form-group">
+              <label>End Time *</label>
+              <div class="input-wrap"><i class="fas fa-clock"></i>
+                <input type="time" name="end_time" id="endTime" required>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Cost Preview -->
+        <div id="costPreview" class="cost-preview" style="display:none">
+          <div class="cp-row"><span>Duration</span><span id="cp-duration">—</span></div>
+          <div class="cp-row"><span>Rate</span><span id="cp-rate">—</span></div>
+          <div class="cp-row cp-total"><span>Estimated Cost</span><span id="cp-cost">—</span></div>
+        </div>
+
+        <!-- Availability Check -->
+        <div id="availMsg" class="avail-msg" style="display:none"></div>
+
+        <button type="submit" class="btn-auth btn-book" id="submitBtn" disabled>
+          <i class="fas fa-lock"></i> Confirm Booking
+        </button>
+      </form>
+    </div>
+
+    <!-- Info Panel -->
+    <div class="book-info-panel">
+      <div class="bip-card">
+        <h3><i class="fas fa-info-circle"></i> Booking Guidelines</h3>
+        <ul class="bip-list">
+          <li>Minimum booking duration is 30 minutes.</li>
+          <li>Cost is calculated hourly based on slot type.</li>
+          <li>Cancellations must be made before start time.</li>
+          <li>A QR code is generated on confirmation.</li>
+          <li>Vehicle number must match your registration.</li>
+        </ul>
+      </div>
+      <div class="bip-card rates-card">
+        <h3><i class="fas fa-rupee-sign"></i> Parking Rates</h3>
+        <div class="rate-row"><span>🚗 Car (Zone A)</span><span>₹20/hr</span></div>
+        <div class="rate-row"><span>🚗 Car (Zone B)</span><span>₹25/hr</span></div>
+        <div class="rate-row"><span>🏍 Bike</span><span>₹10/hr</span></div>
+        <div class="rate-row"><span>⚡ EV Charging</span><span>₹40/hr</span></div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+{% block extra_js %}
+<script>
+const slotSelect  = document.getElementById('slotSelect');
+const startTime   = document.getElementById('startTime');
+const endTime     = document.getElementById('endTime');
+const bookingDate = document.getElementById('bookingDate');
+const costPreview = document.getElementById('costPreview');
+const submitBtn   = document.getElementById('submitBtn');
+const availMsg    = document.getElementById('availMsg');
+
+slotSelect.addEventListener('change', function() {
+  const opt  = this.selectedOptions[0];
+  const info = document.getElementById('slotInfo');
+  if(this.value) {
+    document.getElementById('sib-area').textContent = opt.dataset.area;
+    document.getElementById('sib-type').textContent = opt.dataset.type.toUpperCase();
+    document.getElementById('sib-rate').textContent = opt.dataset.rate;
+    info.style.display = 'flex';
+  } else { info.style.display = 'none'; }
+  updateCost();
+});
+
+[startTime, endTime, bookingDate].forEach(el => el.addEventListener('change', () => { updateCost(); checkAvail(); }));
+
+function updateCost() {
+  const opt = slotSelect.selectedOptions[0];
+  if(!slotSelect.value || !startTime.value || !endTime.value) { costPreview.style.display='none'; return; }
+  const rate = parseFloat(opt.dataset.rate);
+  const [sh,sm] = startTime.value.split(':').map(Number);
+  const [eh,em] = endTime.value.split(':').map(Number);
+  let hrs = (eh*60+em - sh*60-sm) / 60;
+  if(hrs <= 0) { costPreview.style.display='none'; return; }
+  hrs = Math.max(hrs, 0.5);
+  document.getElementById('cp-duration').textContent = hrs.toFixed(1) + ' hrs';
+  document.getElementById('cp-rate').textContent = '₹' + rate + '/hr';
+  document.getElementById('cp-cost').textContent = '₹' + (hrs * rate).toFixed(2);
+  costPreview.style.display = 'block';
+}
+
+function checkAvail() {
+  if(!slotSelect.value || !bookingDate.value || !startTime.value || !endTime.value) return;
+  fetch('/api/check-availability', {
+    method:'POST', headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({
+      slot_id: slotSelect.value,
+      booking_date: bookingDate.value,
+      start_time: startTime.value,
+      end_time: endTime.value
+    })
+  }).then(r=>r.json()).then(d=>{
+    availMsg.style.display = 'block';
+    if(d.available) {
+      availMsg.className = 'avail-msg avail-ok';
+      availMsg.innerHTML = '<i class="fas fa-check-circle"></i> Slot is available for this time!';
+      submitBtn.disabled = false;
+      submitBtn.innerHTML = '<i class="fas fa-check"></i> Confirm Booking';
+    } else {
+      availMsg.className = 'avail-msg avail-err';
+      availMsg.innerHTML = '<i class="fas fa-times-circle"></i> ' + d.message;
+      submitBtn.disabled = true;
+      submitBtn.innerHTML = '<i class="fas fa-lock"></i> Not Available';
+    }
+  });
+}
+</script>
+{% endblock %}

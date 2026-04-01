@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+{% block title %}Server Error — SmartPark{% endblock %}
+{% block content %}
+<div class="error-page">
+  <div class="error-content">
+    <div class="error-code" style="color:#ef4444">500</div>
+    <h2>Server Error</h2>
+    <p>Something went wrong on our end. Please check your database connection settings.</p>
+    <a href="{{ url_for('index') }}" class="btn-primary-lg">Go Home</a>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+{% block title %}Admin Login — SmartPark{% endblock %}
+{% block body_class %}auth-page admin-auth{% endblock %}
+{% block content %}
+<div class="auth-wrapper">
+  <div class="auth-left admin-left">
+    <div class="auth-left-content">
+      <div class="auth-brand admin-brand"><i class="fas fa-shield-alt"></i> Admin Portal</div>
+      <h2>SmartPark Administration</h2>
+      <p>Manage parking slots, bookings, and users from a centralized dashboard.</p>
+      <div class="auth-perks">
+        <div class="perk"><i class="fas fa-chart-line"></i> Analytics Dashboard</div>
+        <div class="perk"><i class="fas fa-cog"></i> Slot Management</div>
+        <div class="perk"><i class="fas fa-users"></i> User Management</div>
+        <div class="perk"><i class="fas fa-clipboard-list"></i> Booking Control</div>
+      </div>
+    </div>
+  </div>
+  <div class="auth-right">
+    <div class="auth-card admin-card">
+      <div class="admin-card-icon"><i class="fas fa-user-shield"></i></div>
+      <h2 class="auth-title">Admin Sign In</h2>
+      <p class="auth-sub">Restricted access — authorized personnel only</p>
+      <form method="POST" class="auth-form">
+        <div class="form-group">
+          <label>Admin Username</label>
+          <div class="input-wrap"><i class="fas fa-user-tie"></i>
+            <input type="text" name="username" placeholder="admin" required autofocus>
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Password</label>
+          <div class="input-wrap"><i class="fas fa-lock"></i>
+            <input type="password" name="password" id="pwd" placeholder="Admin password" required>
+            <button type="button" class="eye-btn" onclick="togglePwd('pwd','eye1')"><i class="fas fa-eye" id="eye1"></i></button>
+          </div>
+        </div>
+        <button type="submit" class="btn-auth btn-admin">Access Dashboard <i class="fas fa-arrow-right"></i></button>
+      </form>
+      <div class="auth-divider"><span>or</span></div>
+      <a href="{{ url_for('login') }}" class="btn-admin-link"><i class="fas fa-user"></i> User Login</a>
+    </div>
+  </div>
+</div>
+{% endblock %}

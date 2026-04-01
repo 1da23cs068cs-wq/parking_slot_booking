@@ -1,0 +1,143 @@
+{% extends "admin_base.html" %}
+{% block admin_title %}Manage Parking Slots{% endblock %}
+{% block admin_content %}
+<div class="admin-panel">
+  <div class="ap-header">
+    <h3><i class="fas fa-map-marked-alt"></i> Parking Slots</h3>
+    <button class="btn-primary" onclick="document.getElementById('addSlotModal').style.display='flex'">
+      <i class="fas fa-plus"></i> Add Slot
+    </button>
+  </div>
+
+  <table class="data-table">
+    <thead>
+      <tr><th>Slot #</th><th>Type</th><th>Area</th><th>Floor</th><th>Status</th><th>Rate/hr</th><th>Actions</th></tr>
+    </thead>
+    <tbody>
+      {% for s in slots %}
+      <tr>
+        <td><strong>{{ s.slot_number }}</strong></td>
+        <td>
+          {% if s.slot_type=='car' %}<span class="type-badge car">🚗 Car</span>
+          {% elif s.slot_type=='bike' %}<span class="type-badge bike">🏍 Bike</span>
+          {% else %}<span class="type-badge ev">⚡ EV</span>{% endif %}
+        </td>
+        <td>{{ s.area }}</td>
+        <td>{{ s.floor }}</td>
+        <td><span class="status-badge {{ s.status }}">{{ s.status|title }}</span></td>
+        <td>₹{{ s.hourly_rate }}</td>
+        <td>
+          <div class="table-actions">
+            <button class="ta-btn view" onclick="openEdit({{ s.id }}, '{{ s.slot_number }}', '{{ s.slot_type }}', '{{ s.area }}', '{{ s.floor }}', '{{ s.status }}', '{{ s.hourly_rate }}')" title="Edit">
+              <i class="fas fa-edit"></i>
+            </button>
+            <form method="POST" onsubmit="return confirm('Delete slot {{ s.slot_number }}?')" style="display:inline">
+              <input type="hidden" name="action" value="delete">
+              <input type="hidden" name="slot_id" value="{{ s.id }}">
+              <button type="submit" class="ta-btn cancel" title="Delete"><i class="fas fa-trash"></i></button>
+            </form>
+          </div>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+<!-- Add Slot Modal -->
+<div class="modal-overlay" id="addSlotModal">
+  <div class="modal-box">
+    <div class="modal-header"><h3>Add New Parking Slot</h3><button onclick="document.getElementById('addSlotModal').style.display='none'" class="modal-close">×</button></div>
+    <form method="POST" class="booking-form">
+      <input type="hidden" name="action" value="add">
+      <div class="form-row">
+        <div class="form-group">
+          <label>Slot Number *</label>
+          <div class="input-wrap"><i class="fas fa-hashtag"></i><input type="text" name="slot_number" placeholder="A-09" required style="text-transform:uppercase"></div>
+        </div>
+        <div class="form-group">
+          <label>Type *</label>
+          <select name="slot_type" class="form-select">
+            <option value="car">Car</option><option value="bike">Bike</option><option value="ev">EV</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Area</label>
+          <div class="input-wrap"><i class="fas fa-map-marker-alt"></i><input type="text" name="area" placeholder="Zone A" required></div>
+        </div>
+        <div class="form-group">
+          <label>Floor</label>
+          <div class="input-wrap"><i class="fas fa-layer-group"></i><input type="text" name="floor" placeholder="Ground"></div>
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Hourly Rate (₹)</label>
+        <div class="input-wrap"><i class="fas fa-rupee-sign"></i><input type="number" name="hourly_rate" value="20" step="0.5" min="1"></div>
+      </div>
+      <button type="submit" class="btn-auth">Add Slot</button>
+    </form>
+  </div>
+</div>
+
+<!-- Edit Slot Modal -->
+<div class="modal-overlay" id="editSlotModal">
+  <div class="modal-box">
+    <div class="modal-header"><h3>Edit Parking Slot</h3><button onclick="document.getElementById('editSlotModal').style.display='none'" class="modal-close">×</button></div>
+    <form method="POST" class="booking-form">
+      <input type="hidden" name="action" value="edit">
+      <input type="hidden" name="slot_id" id="edit_slot_id">
+      <div class="form-group">
+        <label>Slot Number (read-only)</label>
+        <div class="input-wrap"><i class="fas fa-hashtag"></i><input type="text" id="edit_slot_num" disabled class="disabled-input"></div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Type</label>
+          <select name="slot_type" id="edit_type" class="form-select">
+            <option value="car">Car</option><option value="bike">Bike</option><option value="ev">EV</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Status</label>
+          <select name="status" id="edit_status" class="form-select">
+            <option value="available">Available</option>
+            <option value="occupied">Occupied</option>
+            <option value="reserved">Reserved</option>
+            <option value="maintenance">Maintenance</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Area</label>
+          <div class="input-wrap"><i class="fas fa-map-marker-alt"></i><input type="text" name="area" id="edit_area" required></div>
+        </div>
+        <div class="form-group">
+          <label>Floor</label>
+          <div class="input-wrap"><i class="fas fa-layer-group"></i><input type="text" name="floor" id="edit_floor"></div>
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Hourly Rate (₹)</label>
+        <div class="input-wrap"><i class="fas fa-rupee-sign"></i><input type="number" name="hourly_rate" id="edit_rate" step="0.5" min="1"></div>
+      </div>
+      <button type="submit" class="btn-auth">Save Changes</button>
+    </form>
+  </div>
+</div>
+
+<script>
+function openEdit(id, num, type, area, floor, status, rate) {
+  document.getElementById('edit_slot_id').value = id;
+  document.getElementById('edit_slot_num').value = num;
+  document.getElementById('edit_type').value = type;
+  document.getElementById('edit_area').value = area;
+  document.getElementById('edit_floor').value = floor;
+  document.getElementById('edit_status').value = status;
+  document.getElementById('edit_rate').value = rate;
+  document.getElementById('editSlotModal').style.display = 'flex';
+}
+</script>
+{% endblock %}

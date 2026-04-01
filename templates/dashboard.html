@@ -1,0 +1,123 @@
+{% extends "base.html" %}
+{% block title %}Dashboard — SmartPark{% endblock %}
+{% block content %}
+<div class="page-container">
+  <div class="page-header">
+    <div>
+      <h1>Welcome, {{ session.user_name }} <span class="wave">👋</span></h1>
+      <p class="page-sub">Here's your parking overview</p>
+    </div>
+    <a href="{{ url_for('book_slot') }}" class="btn-primary"><i class="fas fa-plus"></i> New Booking</a>
+  </div>
+
+  <!-- Stats Cards -->
+  <div class="stats-grid">
+    <div class="stat-card stat-blue">
+      <div class="sc-icon"><i class="fas fa-calendar-check"></i></div>
+      <div class="sc-data">
+        <span class="sc-num">{{ stats.get('active', 0) }}</span>
+        <span class="sc-label">Active Bookings</span>
+      </div>
+    </div>
+    <div class="stat-card stat-green">
+      <div class="sc-icon"><i class="fas fa-check-double"></i></div>
+      <div class="sc-data">
+        <span class="sc-num">{{ stats.get('completed', 0) }}</span>
+        <span class="sc-label">Completed</span>
+      </div>
+    </div>
+    <div class="stat-card stat-red">
+      <div class="sc-icon"><i class="fas fa-times-circle"></i></div>
+      <div class="sc-data">
+        <span class="sc-num">{{ stats.get('cancelled', 0) }}</span>
+        <span class="sc-label">Cancelled</span>
+      </div>
+    </div>
+    <div class="stat-card stat-orange">
+      <div class="sc-icon"><i class="fas fa-history"></i></div>
+      <div class="sc-data">
+        <span class="sc-num">{{ (stats.get('active',0) + stats.get('completed',0) + stats.get('cancelled',0)) }}</span>
+        <span class="sc-label">Total Bookings</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="dashboard-grid">
+    <!-- Active Bookings -->
+    <div class="dash-panel">
+      <div class="panel-header">
+        <h3><i class="fas fa-calendar-alt"></i> Active Bookings</h3>
+        <a href="{{ url_for('booking_history') }}" class="panel-link">View All</a>
+      </div>
+      {% if active %}
+        {% for b in active %}
+        <div class="booking-card-dash">
+          <div class="bc-left">
+            <div class="slot-badge {{ b.slot_type }}">{{ b.slot_number }}</div>
+            <div class="bc-info">
+              <span class="bc-area">{{ b.area }}</span>
+              <span class="bc-date"><i class="fas fa-calendar"></i> {{ b.booking_date }}</span>
+              <span class="bc-time"><i class="fas fa-clock"></i> {{ b.start_time }} – {{ b.end_time }}</span>
+            </div>
+          </div>
+          <div class="bc-right">
+            <span class="status-badge active">Active</span>
+            <a href="{{ url_for('booking_detail', ref=b.booking_ref) }}" class="bc-view"><i class="fas fa-eye"></i></a>
+          </div>
+        </div>
+        {% endfor %}
+      {% else %}
+        <div class="empty-state">
+          <i class="fas fa-calendar-times"></i>
+          <p>No active bookings</p>
+          <a href="{{ url_for('book_slot') }}" class="btn-sm">Book Now</a>
+        </div>
+      {% endif %}
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="dash-panel">
+      <div class="panel-header"><h3><i class="fas fa-bolt"></i> Quick Actions</h3></div>
+      <div class="quick-actions">
+        <a href="{{ url_for('slots') }}" class="qa-card">
+          <div class="qa-icon qa-blue"><i class="fas fa-map-marked-alt"></i></div>
+          <span>View Slots</span>
+        </a>
+        <a href="{{ url_for('book_slot') }}" class="qa-card">
+          <div class="qa-icon qa-green"><i class="fas fa-calendar-plus"></i></div>
+          <span>Book Slot</span>
+        </a>
+        <a href="{{ url_for('booking_history') }}" class="qa-card">
+          <div class="qa-icon qa-orange"><i class="fas fa-history"></i></div>
+          <span>History</span>
+        </a>
+        <a href="{{ url_for('profile') }}" class="qa-card">
+          <div class="qa-icon qa-purple"><i class="fas fa-user-edit"></i></div>
+          <span>Profile</span>
+        </a>
+      </div>
+
+      <!-- Recent Activity -->
+      <div class="panel-header" style="margin-top:1.5rem">
+        <h3><i class="fas fa-history"></i> Recent Activity</h3>
+      </div>
+      {% if recent %}
+      <div class="recent-list">
+        {% for b in recent %}
+        <div class="recent-item">
+          <div class="ri-dot {{ b.status }}"></div>
+          <div class="ri-info">
+            <span class="ri-ref">{{ b.booking_ref }}</span>
+            <span class="ri-slot">Slot {{ b.slot_number }} · {{ b.area }}</span>
+          </div>
+          <span class="status-badge {{ b.status }}">{{ b.status|title }}</span>
+        </div>
+        {% endfor %}
+      </div>
+      {% else %}
+      <div class="empty-state"><i class="fas fa-inbox"></i><p>No recent activity</p></div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+{% endblock %}
